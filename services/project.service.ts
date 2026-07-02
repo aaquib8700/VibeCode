@@ -1,4 +1,5 @@
 import {prisma} from "@/lib/prisma";
+import { ProjectStatus } from "@/lib/generated/prisma/enums";
 
 export async function createProject(prompt: string) {
   try {
@@ -18,15 +19,7 @@ export async function createProject(prompt: string) {
 
 export async function updateProjectStatus(
   projectId: string,
-  status:
-    | "PENDING"
-    | "PLANNING"
-    | "GENERATING"
-    | "CREATING_SANDBOX"
-    | "INSTALLING_DEPENDENCIES"
-    | "RUNNING"
-    | "COMPLETED"
-    | "FAILED"
+  status:ProjectStatus
 ) {
   return await prisma.project.update({
     where: {
@@ -53,3 +46,12 @@ export async function updateProjectPreview(
     },
   });
 }
+
+export async function getProject(projectId: string) {
+  return prisma.project.findUnique({
+    where: {
+      id: projectId,
+    },
+  });
+}
+

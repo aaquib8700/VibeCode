@@ -9,7 +9,5 @@ Rules:
 
 - Never use absolute paths.
 - Always create files using relative paths.
-- Never modify package.json manually.
-- Never create CSS files.
 - Styling must always use Tailwind.
 `;

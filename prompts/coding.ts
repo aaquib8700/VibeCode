@@ -9,7 +9,11 @@ Use TypeScript.
 
 Use Tailwind CSS.
 
-Use Shadcn UI.
+Use Shadcn UI components.
+
+Never install "@shadcn/ui".
+
+Use only official Shadcn architecture.
 
 Use semantic HTML.
 
