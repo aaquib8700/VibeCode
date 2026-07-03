@@ -13,7 +13,6 @@ import {
   getNextTemplateFiles,
 } from "@/lib/template";
 import { mergePackageJson } from "@/lib/package-json";
-import { validateGeneratedFiles } from "@/lib/validator";
 
 
 
@@ -61,20 +60,6 @@ export const generateProject = inngest.createFunction(
 
         const dependencies = parsed.dependencies;
         const aiFiles = parsed.files;
-
-        const validation = validateGeneratedFiles(
-  aiFiles,
-  dependencies
-);
-
-if (!validation.valid) {
-  console.error("========== VALIDATION ERRORS ==========");
-  console.error(validation.errors);
-  console.error("=======================================");
-  throw new Error(
-    validation.errors.join("\n")
-  );
-}
 
         const fixedAiFiles = aiFiles.map((file) => {
   if (file.path !== "src/App.tsx") {

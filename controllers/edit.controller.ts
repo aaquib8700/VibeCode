@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { editorAgent } from "@/agents/editor.agent";
-import { updateProjectSandbox } from "@/services/sandbox.service";
-import { updateProjectStatus } from "@/services/project.service";
+import { editProject } from "@/services/edit.service";
 import { EditProjectInput } from "@/types/ai";
 
 export async function editController(req: NextRequest) {
@@ -14,7 +12,7 @@ export async function editController(req: NextRequest) {
 
     const { projectId, sandboxId, prompt } = body;
 
-    if (!projectId || !sandboxId || !prompt ) {
+    if (!projectId || !sandboxId || !prompt) {
       return NextResponse.json(
         {
           success: false,
@@ -26,19 +24,15 @@ export async function editController(req: NextRequest) {
       );
     }
 
-    await updateProjectStatus(projectId, "GENERATING");
-
-    const updatedFiles = await editorAgent({
-      prompt,
+    await editProject({
+      projectId,
       sandboxId,
+      prompt,
     });
-
-    await updateProjectSandbox(sandboxId, updatedFiles);
-
-    await updateProjectStatus(projectId, "RUNNING");
 
     return NextResponse.json({
       success: true,
+      message: "Edit request queued successfully.",
     });
   } catch (error) {
     console.error(error);
@@ -46,7 +40,7 @@ export async function editController(req: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        error: "Failed to edit project.",
+        error: "Failed to queue edit request.",
       },
       {
         status: 500,

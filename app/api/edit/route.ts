@@ -1,8 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { editController } from "@/controllers/edit.controller";
 
 export async function POST(request: NextRequest) {
-  return NextResponse.json({
-    success: true,
-    message: "Edit route working",
-  });
+  return editController(request);
 }
