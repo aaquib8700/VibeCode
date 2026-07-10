@@ -9,6 +9,13 @@ import { POSTCSS_CONFIG } from "@/templates/react/postcss-config";
 import { INDEX_HTML } from "@/templates/react/index-html";
 import { MAIN_TSX } from "@/templates/react/main-tsx";
 import { INDEX_CSS } from "@/templates/react/index-css";
+import { NEXT_PACKAGE_JSON } from "@/templates/next/package-json";
+import { NEXT_CONFIG } from "@/templates/next/next-config";
+import { NEXT_TSCONFIG } from "@/templates/next/tsconfig-node-json";
+import { NEXT_POSTCSS_CONFIG } from "@/templates/next/postcss-config";
+import { NEXT_ESLINT_CONFIG } from "@/templates/next/eslint-config";
+import { LAYOUT_TSX } from "@/templates/next/app/layout";
+import { GLOBALS_CSS } from "@/templates/next/app/globals-css";
 
 export async function getReactTemplateFiles(): Promise<GeneratedFile[]> {
   return [
@@ -52,6 +59,34 @@ export async function getReactTemplateFiles(): Promise<GeneratedFile[]> {
 }
 
 export async function getNextTemplateFiles(): Promise<GeneratedFile[]> {
-  // Next template implement karenge jab Next support complete karenge
-  return [];
+  return [
+    {
+      path: "package.json",
+      content: NEXT_PACKAGE_JSON,
+    },
+    {
+      path: "next.config.ts",
+      content: NEXT_CONFIG,
+    },
+    {
+      path: "tsconfig.json",
+      content: NEXT_TSCONFIG,
+    },
+    {
+      path: "postcss.config.mjs",
+      content: NEXT_POSTCSS_CONFIG,
+    },
+    {
+      path: "eslint.config.mjs",
+      content: NEXT_ESLINT_CONFIG,
+    },
+    {
+      path: "app/layout.tsx",
+      content: LAYOUT_TSX,
+    },
+    {
+      path: "app/globals.css",
+      content: GLOBALS_CSS,
+    },
+  ];
 }

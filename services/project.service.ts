@@ -55,3 +55,14 @@ export async function getProject(projectId: string) {
   });
 }
 
+export async function updateProjectFiles(projectId: string, files: any[]) {
+  return await prisma.project.update({
+    where: {
+      id: projectId,
+    },
+    data: {
+      files: files as any,
+    } as any,
+  });
+}
+

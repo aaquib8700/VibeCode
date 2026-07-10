@@ -1,156 +1,66 @@
 import { GeneratedFile } from "@/types/ai";
-
-export interface ValidationResult {
-  valid: boolean;
-  errors: string[];
-}
-
-const LOCAL_IMPORT_REGEX =
-  /import\s+(?:[\w*\s{},]+)\s+from\s+["'](.+)["']/g;
+import {
+  ValidationError,
+  ValidationResult,
+} from "@/types/validator";
 
 export function validateGeneratedFiles(
-  files: GeneratedFile[],
-  dependencies: string[]
+  files: GeneratedFile[]
 ): ValidationResult {
-  const errors: string[] = [];
+  const errors: ValidationError[] = [];
 
-  // -----------------------------
-  // Duplicate Files
-  // -----------------------------
+  const paths = new Set<string>();
 
-  const paths = files.map((file) => normalize(file.path));
+  for (const file of files) {
+    // duplicate files
+    if (paths.has(file.path)) {
+      errors.push({
+        type: "duplicate_file",
+        file: file.path,
+        message: "Duplicate file detected.",
+      });
 
-  const duplicates = paths.filter(
-    (path, index) => paths.indexOf(path) !== index
-  );
+      continue;
+    }
 
-  if (duplicates.length) {
-    errors.push(
-      `Duplicate files: ${duplicates.join(", ")}`
+    paths.add(file.path);
+
+    // default export
+    if (
+      file.path === "src/App.tsx" &&
+      !file.content.includes("export default")
+    ) {
+      errors.push({
+        type: "missing_default_export",
+        file: file.path,
+        message: "App.tsx must export default.",
+      });
+    }
+
+    // lucide imports
+    const matches = file.content.matchAll(
+      /import\s*\{([^}]*)\}\s*from\s*['"]lucide-react['"]/g
     );
-  }
 
-  // -----------------------------
-  // App.tsx default export
-  // -----------------------------
+    for (const match of matches) {
+      const icons = match[1]
+        .split(",")
+        .map((i) => i.trim());
 
-  const app = files.find(
-    (file) => normalize(file.path) === "src/App.tsx"
-  );
-
-  if (app) {
-    if (!app.content.includes("export default")) {
-      errors.push(
-        "src/App.tsx must export a default component."
-      );
-    }
-  }
-
-  // -----------------------------
-  // Local imports
-  // -----------------------------
-
-  const generatedFiles = new Set(paths);
-
-  for (const file of files) {
-    const imports = getImports(file.content);
-
-    for (const imported of imports) {
-      // Ignore npm packages
-      if (!imported.startsWith(".")) continue;
-
-      const resolved = resolveImport(
-        normalize(file.path),
-        imported
-      );
-
-      if (!generatedFiles.has(resolved)) {
-        errors.push(
-          `Missing file: ${resolved} (imported by ${file.path})`
-        );
-      }
-    }
-  }
-
-  // -----------------------------
-  // NPM Dependencies
-  // -----------------------------
-
-  const deps = new Set(dependencies);
-
-  for (const file of files) {
-    const imports = getImports(file.content);
-
-    for (const imported of imports) {
-      if (
-        imported.startsWith(".") ||
-        imported.startsWith("/")
-      ) {
-        continue;
-      }
-
-      if (
-        imported === "react" ||
-        imported === "react-dom"
-      ) {
-        continue;
-      }
-
-      if (!deps.has(imported)) {
-        errors.push(
-          `Missing dependency: ${imported}`
-        );
+      for (const icon of icons) {
+        errors.push({
+          type: "invalid_import",
+          file: file.path,
+          message:
+            "Verify this Lucide icon exists.",
+          value: icon,
+        });
       }
     }
   }
 
   return {
-    valid: errors.length === 0,
+    success: errors.length === 0,
     errors,
   };
-}
-
-function getImports(code: string): string[] {
-  const imports: string[] = [];
-
-  const matches = code.matchAll(LOCAL_IMPORT_REGEX);
-
-  for (const match of matches) {
-    imports.push(match[1]);
-  }
-
-  return imports;
-}
-
-function normalize(path: string) {
-  return path.replace(/\\/g, "/");
-}
-
-function resolveImport(
-  currentFile: string,
-  imported: string
-) {
-  const current = currentFile.split("/");
-
-  current.pop();
-
-  const parts = imported.split("/");
-
-  for (const part of parts) {
-    if (part === ".") continue;
-
-    if (part === "..") {
-      current.pop();
-    } else {
-      current.push(part);
-    }
-  }
-
-  let finalPath = current.join("/");
-
-  if (!finalPath.endsWith(".tsx")) {
-    finalPath += ".tsx";
-  }
-
-  return finalPath;
 }

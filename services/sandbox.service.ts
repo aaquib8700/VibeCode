@@ -26,7 +26,7 @@ export async function createProjectSandbox(
 console.log("Installing dependencies...");
 
 const install = await sandbox.commands.run(
-  "npm install --legacy-peer-deps --force"
+  "npm install --no-audit --no-fund"
 );
 
 console.log("========== INSTALL STDOUT ==========");

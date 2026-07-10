@@ -23,14 +23,63 @@ Rules:
 
 Improve the prompt.
 
+Determine the project type.
+
+Possible values:
+
+landing
+dashboard
+portfolio
+ecommerce
+blog
+chat
+admin
+form
+marketing
+other
+
+Determine the visual style.
+
+Possible values:
+
+modern
+minimal
+glassmorphism
+gradient
+dark
+light
+
+Determine the theme.
+
+Examples:
+
+spotify
+youtube
+netflix
+github
+stripe
+apple
+saas
+banking
+education
+travel
+food
+fitness
+
+If no obvious theme exists, return "custom".
+
 Return ONLY valid JSON.
 
 Example:
 
 {
-  "title":"Ecommerce Landing Page",
-  "framework":"react",
-  "prompt":"Create a modern ecommerce landing page..."
+{
+  "title": "Spotify Landing Page",
+  "framework": "react",
+  "type": "landing",
+  "style": "modern",
+  "theme": "spotify",
+  "prompt": "Create a modern Spotify landing page with premium sections, playlists, responsive design and beautiful UI."
 }
 
 User Request:
@@ -39,6 +88,18 @@ ${userPrompt}
 `,
     systemPrompt: `
 Return ONLY valid JSON.
+
+The response MUST exactly match this shape:
+
+{
+"title":"",
+"framework":"",
+"type":"",
+"style":"",
+"theme":"",
+"prompt":""
+}
+
 Never use markdown.
 Never use backticks.
 Never explain anything.

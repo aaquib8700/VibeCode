@@ -1,7 +1,7 @@
 import { ProjectStatus } from "@/lib/generated/prisma/enums";
 import { editorAgent } from "@/agents/editor.agent";
 import { updateProjectSandbox } from "@/services/sandbox.service";
-import { updateProjectStatus } from "@/services/project.service";
+import { updateProjectStatus, getProject, updateProjectFiles } from "@/services/project.service";
 import { inngest } from "../client";
 
 export const editProject = inngest.createFunction(
@@ -40,6 +40,33 @@ export const editProject = inngest.createFunction(
           sandboxId,
           updatedFiles
         );
+      });
+
+      await step.run("update-db-files", async () => {
+        const project = await getProject(projectId);
+        if (project) {
+          const currentFiles = ((project as any).files as any[]) || [];
+          const updatedFilesMap = new Map(updatedFiles.map((f: any) => [f.path, f.content]));
+          
+          const nextFiles = currentFiles.map((file: any) => {
+            if (updatedFilesMap.has(file.path)) {
+              return {
+                path: file.path,
+                content: updatedFilesMap.get(file.path),
+              };
+            }
+            return file;
+          });
+          
+          const currentPaths = new Set(currentFiles.map((f: any) => f.path));
+          for (const file of updatedFiles) {
+            if (!currentPaths.has(file.path)) {
+              nextFiles.push(file);
+            }
+          }
+
+          await updateProjectFiles(projectId, nextFiles);
+        }
       });
 
       await step.run("running", async () => {

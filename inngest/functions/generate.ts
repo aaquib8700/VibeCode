@@ -6,6 +6,7 @@ import { createProjectSandbox } from "@/services/sandbox.service";
 import {
   updateProjectPreview,
   updateProjectStatus,
+  updateProjectFiles,
 } from "@/services/project.service";
 import { inngest } from "../client";
 import {
@@ -13,6 +14,7 @@ import {
   getNextTemplateFiles,
 } from "@/lib/template";
 import { mergePackageJson } from "@/lib/package-json";
+import { validateGeneratedFiles } from "@/lib/validator";
 
 
 
@@ -60,6 +62,10 @@ export const generateProject = inngest.createFunction(
 
         const dependencies = parsed.dependencies;
         const aiFiles = parsed.files;
+
+        const validation = validateGeneratedFiles(aiFiles);
+  
+        console.log(validation);
 
         const fixedAiFiles = aiFiles.map((file) => {
   if (file.path !== "src/App.tsx") {
@@ -136,6 +142,11 @@ export const generateProject = inngest.createFunction(
         ];
       });
 
+      // Save files to the database
+      await step.run("save-files-to-db", async () => {
+        await updateProjectFiles(projectId, files);
+      });
+
       await step.run("creating-sandbox", async () => {
         await updateProjectStatus(
           projectId,
@@ -143,15 +154,23 @@ export const generateProject = inngest.createFunction(
         );
       });
 
-      const sandbox = await step.run(
-        "create-sandbox",
-        async () => {
-          return createProjectSandbox(
-            files,
-            plan.framework
-          );
-        }
-      );
+const packageJson = files.find(
+  (file) => file.path === "package.json"
+);
+
+console.log("========== FINAL PACKAGE.JSON ==========");
+console.log(packageJson?.content);
+console.log("========================================");
+
+const sandbox = await step.run(
+  "create-sandbox",
+  async () => {
+    return createProjectSandbox(
+      files,
+      plan.framework
+    );
+  }
+);
 
       await step.run("save-preview", async () => {
         await updateProjectPreview(
